@@ -1,104 +1,109 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
-
-class Categoriasproduto(models.Model):
-    idcategoriaproduto = models.AutoField(primary_key=True)
+class CategoriaProduto(models.Model):
     nome = models.CharField(max_length=100)
 
-    class Meta:
-        managed = False
-        db_table = 'categoriasproduto'
+    def __str__(self):
+        return self.nome
 
 
-class Clientes(models.Model):
-    idcliente = models.AutoField(primary_key=True)
+class Cliente(models.Model):
     nome = models.CharField(max_length=100, blank=True, null=True)
     nick = models.CharField(max_length=100, blank=True, null=True)
-    telefone = models.CharField(max_length=100, blank=True, null=True)
-    datacriacao = models.DateField(blank=True, null=True, auto_now_add=True)
+    telefone = models.CharField(max_length=15, blank=True, null=True)
+    data_criacao = models.DateField(auto_now_add=True)
 
-    class Meta:
-        managed = False
-        db_table = 'clientes'
+    def __str__(self):
+        return self.nome or self.nick
 
 
-class Consoles(models.Model):
-    idconsole = models.AutoField(primary_key=True)
+class Console(models.Model):
+    DISPONIVEL = 1
+    DEFEITO = 2
+    MANUTENCAO = 3
+    STATUS_CHOICES = [
+        (DISPONIVEL, 'Disponível'),
+        (DEFEITO, 'Defeito'),
+        (MANUTENCAO, 'Manutenção'),
+    ]
+
     nome = models.CharField(max_length=100)
-    precomeia = models.FloatField()
-    precohora = models.FloatField()
-    status = models.IntegerField(db_comment='1- DISPONIVEL 2- DEFEITO 3- MANUTENÇÃO')
-    precocompra = models.FloatField()
+    preco_meia_hora = models.DecimalField(max_digits=6, decimal_places=2)
+    preco_hora = models.DecimalField(max_digits=6, decimal_places=2)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=DISPONIVEL)
+    preco_compra = models.DecimalField(max_digits=10, decimal_places=2)
 
-    class Meta:
-        managed = False
-        db_table = 'consoles'
+    def __str__(self):
+        return self.nome
 
 
-class Produtos(models.Model):
-    idproduto = models.AutoField(primary_key=True)
+class TV(models.Model):
+    DISPONIVEL = 1
+    DEFEITO = 2
+    MANUTENCAO = 3
+    STATUS_CHOICES = [
+        (DISPONIVEL, 'Disponível'),
+        (DEFEITO, 'Defeito'),
+        (MANUTENCAO, 'Manutenção'),
+    ]
+
     nome = models.CharField(max_length=100)
-    preco = models.FloatField()
-    qtdestoque = models.IntegerField()
-    idcategoriaproduto = models.ForeignKey(to=Categoriasproduto, on_delete=models.SET_NULL, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'produtos'
-
-
-class Tvs(models.Model):
-    idtv = models.AutoField(primary_key=True)
-    nome = models.CharField(max_length=100)
-    idconsole = models.ForeignKey(to=Consoles, on_delete=models.SET_NULL, blank=True, null=True)
-    status = models.IntegerField(db_comment='1- DISPONIVEL 2- DEFEITO -3 MANUTENÇÃO')
+    console = models.ForeignKey(Console, on_delete=models.SET_NULL, blank=True, null=True, related_name="tvs")
+    status = models.IntegerField(choices=STATUS_CHOICES, default=DISPONIVEL)
     marca = models.CharField(max_length=100, blank=True, null=True)
-    polegadas = models.CharField(max_length=100, blank=True, null=True)
-    precocompra = models.FloatField()
+    polegadas = models.CharField(max_length=10, blank=True, null=True)
+    preco_compra = models.DecimalField(max_digits=10, decimal_places=2)
 
-    class Meta:
-        managed = False
-        db_table = 'tvs'
+    def __str__(self):
+        return f"{self.nome} - {self.marca}"
+
+
+class Produto(models.Model):
+    nome = models.CharField(max_length=100)
+    preco = models.DecimalField(max_digits=6, decimal_places=2)
+    quantidade_estoque = models.PositiveIntegerField()
+    categoria = models.ForeignKey(CategoriaProduto, on_delete=models.SET_NULL, blank=True, null=True, related_name="produtos")
+
+    def __str__(self):
+        return self.nome
 
 
 class Sessao(models.Model):
-    idsessao = models.AutoField(primary_key=True)
-    idcliente = models.ForeignKey(to=Clientes, on_delete=models.SET_NULL, null=True, blank=True)
-    idtv = models.ForeignKey(to=Tvs, on_delete=models.SET_NULL, blank=True, null=True)
+    FINALIZADO = 0
+    ATIVO = 1
+    PAUSADO = 2
+    STATUS_CHOICES = [
+        (FINALIZADO, 'Finalizado'),
+        (ATIVO, 'Ativo'),
+        (PAUSADO, 'Pausado'),
+    ]
+
+    cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True, related_name="sessoes")
+    tv = models.ForeignKey(TV, on_delete=models.SET_NULL, blank=True, null=True, related_name="sessoes")
     inicio = models.DateTimeField(auto_now_add=True)
-    tempominuto = models.BigIntegerField()
-    status = models.IntegerField(db_comment='0- FINALIZADO 1- ATIVO 2- PAUSADO')
+    tempo_minuto = models.PositiveIntegerField()
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ATIVO)
 
-    class Meta:
-        managed = False
-        db_table = 'sessao'
+    def __str__(self):
+        return f"Sessão {self.id} - {self.cliente}"
 
-class Pausas(models.Model):
-    idpausa = models.AutoField(primary_key=True)
-    idsessão = models.ForeignKey(to=Sessao, on_delete=models.CASCADE)
+
+class Pausa(models.Model):
+    sessao = models.ForeignKey(Sessao, on_delete=models.CASCADE, related_name="pausas")
     inicio = models.DateTimeField(auto_now_add=True)
     fim = models.DateTimeField(blank=True, null=True)
 
-    class Meta:
-        managed = False
-        db_table = 'pausas'
+    def __str__(self):
+        return f"Pausa da Sessão {self.sessao.id}"
 
 
-class Vendas(models.Model):
-    idvenda = models.AutoField(primary_key=True)
-    idcliente = models.ForeignKey(to=Clientes, on_delete=models.SET_NULL, blank=True, null=True)
-    idproduto = models.ForeignKey(to=Produtos, on_delete=models.SET_NULL, blank=True, null=True)
-    quantidade = models.IntegerField()
-    valortotal = models.IntegerField()
+class Venda(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
+    sessao = models.ForeignKey(Sessao, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
+    produto = models.ForeignKey(Produto, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
+    quantidade = models.PositiveIntegerField()
+    valor_total = models.DecimalField(max_digits=8, decimal_places=2)
     data = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        managed = False
-        db_table = 'vendas'
+    def __str__(self):
+        return f"Venda {self.id} - {self.valor_total}"

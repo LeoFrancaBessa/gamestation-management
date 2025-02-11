@@ -1,0 +1,176 @@
+{% extends 'main/base.html' %}
+
+{% load static %}
+
+{% block title %}Sessões - Painel da Lan House{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'main/sessoes_ativas_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sessoes-container">
+    <h2 class="sessoes-title">Sessões Ativas</h2>
+    <table class="sessoes-table">
+        <thead>
+            <tr>
+                <th>TV</th>
+                <th>Console</th>
+                <th>Hora de Início</th>
+                <th>Tempo Restante</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Exemplo de sessão ativa -->
+             {% for s in sessoes %}
+                <tr class="sessoes-row">
+                    <td>{{s.tv.nome}}</td>
+                    <td>{{s.tv.console.nome}}</td>
+                    <td>{{s.inicio|date:"H:i"}}</td>
+                    <td id="id_timeleft_row_{{s.id}}">{{s.tempo_minuto}}</td>
+                    <td class="sessoes-actions">
+                        <button id="btn_pausa_{{s.id}}" class="sessoes-btn sessoes-btn-pausar">Pausar</button>
+                        <button id="btn_finalizar_{{s.id}}" class="sessoes-btn sessoes-btn-finalizar">Finalizar</button>
+                    </td>
+                </tr>
+             {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Botão para adicionar sessão -->
+    <button class="sessoes-btn-add" id="btn-add-sessao">+</button>
+
+    <!-- Modal para adicionar sessão -->
+    <div class="sessoes-modal" id="modal-add-sessao">
+        <div class="sessoes-modal-content">
+            <span class="sessoes-modal-close">&times;</span>
+            <h3>Criar Nova Sessão</h3>
+            <form class="sessoes-form", id="form-add-sessao", method="post">
+                {% csrf_token %}
+                <div class="sessoes-form-group" id="form-add-sessao">
+                    <label for="tv">TV</label>
+                    <select name="tv" id="tv">
+                        {% for tv in tvs %}
+                            <option value="{{tv.id}}">{{tv.nome}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sessoes-form-group">
+                    <label for="cliente">Cliente</label>
+                    <select name="cliente" id="cliente">
+                        {% for c in clientes %}
+                            <option value="{{c.id}}">{{c.nome}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sessoes-form-group">
+                    <label for="tempo">Tempo (minutos)</label>
+                    <input type="number" id="tempo_minuto" name="tempo_minuto" required>
+                </div>
+                <div class="sessoes-form-actions">
+                    <button type="button" class="sessoes-btn sessoes-btn-cancelar">Cancelar</button>
+                    <button type="submit" class="sessoes-btn sessoes-btn-salvar">Criar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+
+        function iniciarCronometro(duracaoMinutos, elemento) {
+            let tempoRestante = duracaoMinutos * 60; // Convertendo minutos para segundos
+
+            function atualizarCronometro() {
+                let horas = Math.floor(tempoRestante / 3600);
+                let minutos = Math.floor((tempoRestante % 3600) / 60);
+                let segundos = Math.floor(tempoRestante % 60);
+
+                // Formatando para "hh:mm:ss"
+                let formato = 
+                    String(horas).padStart(2, '0') + ":" +
+                    String(minutos).padStart(2, '0') + ":" +
+                    String(segundos).padStart(2, '0');
+
+                elemento.textContent = formato; // Atualizando o elemento na página
+
+                if (tempoRestante > 0) {
+                    tempoRestante--; // Reduzindo o tempo restante
+                    setTimeout(atualizarCronometro, 1000); // Atualiza a cada segundo
+                } else {
+                    elemento.textContent = "Finalizado"; // Quando chega a zero
+                }
+            }
+
+            atualizarCronometro(); // Inicia o cronômetro
+        }
+
+        {% for s in sessoes %}
+            var hora_atual = new Date();
+            var hora_inicio = new Date("{{ s.inicio|date:'c' }}");
+            hora_inicio.setMinutes(hora_inicio.getMinutes() + parseInt("{{s.tempo_minuto}}"));
+            var diferençaEmMinutos = (hora_inicio.getTime() - hora_atual.getTime()) / (1000 * 60);
+
+            iniciarCronometro(diferençaEmMinutos, document.getElementById("id_timeleft_row_{{s.id}}"));
+
+        {% endfor %}
+
+        // Abrir modal
+        const btnAddSessao = document.getElementById('btn-add-sessao');
+        const modalAddSessao = document.getElementById('modal-add-sessao');
+        const btnCloseModal = document.querySelector('.sessoes-modal-close');
+        const btnCancelar = document.querySelector('.sessoes-btn-cancelar');
+
+        btnAddSessao.addEventListener('click', function () {
+            modalAddSessao.style.display = 'flex';
+        });
+
+        // Fechar modal
+        btnCloseModal.addEventListener('click', function () {
+            modalAddSessao.style.display = 'none';
+        });
+
+        btnCancelar.addEventListener('click', function () {
+            modalAddSessao.style.display = 'none';
+        });
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function (event) {
+            if (event.target === modalAddSessao) {
+                modalAddSessao.style.display = 'none';
+            }
+        });
+
+        $('#form-add-sessao').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                url: "{% url 'criar-sessão' %}",  // Replace with your URL name
+                type: "POST",
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        // Show errors
+                        let errorHtml = '<div class="alert alert-danger"><ul>';
+                        $.each(response.errors, function(field, errors) {
+                            errorHtml += '<li>' + field + ': ' + errors.join(', ') + '</li>';
+                        });
+                        errorHtml += '</ul></div>';
+                        $('#message').html(errorHtml);
+                    }
+                },
+                error: function(xhr, errmsg, err) {
+                    $('#message').html('<div class="alert alert-danger">Ocorreu um erro. Por favor, tente novamente.</div>');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

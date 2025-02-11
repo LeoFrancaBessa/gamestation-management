@@ -1,0 +1,216 @@
+/* Estilos específicos para a tela de sessões ativas */
+.sessoes-container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.sessoes-title {
+    text-align: center;
+    color: #444;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.sessoes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sessoes-table th,
+.sessoes-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sessoes-table th {
+    background-color: #f5f5f5;
+    color: #666;
+    font-weight: 500;
+}
+
+.sessoes-row:hover {
+    background-color: #fafafa;
+}
+
+.sessoes-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sessoes-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.sessoes-btn-pausar {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.sessoes-btn-pausar:hover {
+    background-color: #ffe69c;
+}
+
+.sessoes-btn-finalizar {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.sessoes-btn-finalizar:hover {
+    background-color: #f5b5b9;
+}
+
+/* Botão para adicionar sessão */
+.sessoes-btn-add {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.sessoes-btn-add:hover {
+    background-color: #218838;
+}
+
+/* Modal */
+.sessoes-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.sessoes-modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sessoes-modal-close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.sessoes-modal-close:hover {
+    color: #333;
+}
+
+.sessoes-form-group {
+    margin-bottom: 15px;
+}
+
+.sessoes-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #444;
+    font-weight: 500;
+}
+
+.sessoes-form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.sessoes-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.sessoes-btn-cancelar {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.sessoes-btn-cancelar:hover {
+    background-color: #f5b5b9;
+}
+
+.sessoes-btn-salvar {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.sessoes-btn-salvar:hover {
+    background-color: #c3e6cb;
+}
+
+.sessoes-form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #fff;
+    appearance: none; /* Remove o estilo padrão do navegador */
+    -webkit-appearance: none; /* Remove o estilo padrão no Safari */
+    -moz-appearance: none; /* Remove o estilo padrão no Firefox */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.sessoes-form-group select:focus {
+    border-color: #28a745;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+    .sessoes-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .sessoes-container {
+        padding: 10px;
+    }
+
+    .sessoes-title {
+        font-size: 20px;
+    }
+
+    .sessoes-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
