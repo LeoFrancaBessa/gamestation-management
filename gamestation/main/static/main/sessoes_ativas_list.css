@@ -55,6 +55,15 @@
     transition: background-color 0.3s ease;
 }
 
+.sessoes-btn-ativar {
+    background-color: #d7ddff;
+    color: #856404;
+}
+
+.sessoes-btn-ativar:hover {
+    background-color: #a0bbff;
+}
+
 .sessoes-btn-pausar {
     background-color: #fff3cd;
     color: #856404;

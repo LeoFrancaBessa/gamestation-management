@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import GerenciamentoSessoes, criar_sessao
+from .views import GerenciamentoSessoes, criar_sessao, pausar_sessao, ativar_sessao
 
 urlpatterns = [
     path("", GerenciamentoSessoes.as_view(), name="gerenciar_sessoes"),
     path("sessao/criar_sessao", criar_sessao, name='criar-sessão'),
+    path("sessao/pausar_sessao", pausar_sessao, name='pausar-sessão'),
+    path("sessao/ativar_sessao", ativar_sessao, name='ativar-sessão'),
 ]

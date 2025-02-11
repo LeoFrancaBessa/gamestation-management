@@ -44,8 +44,7 @@ def criar_sessao(request):
 
 def pausar_sessao(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        sessao_id = data.get('sessao_id')
+        sessao_id = request.POST.get('sessao_id')
         sessao = Sessao.objects.filter(id=sessao_id).first()
         if sessao and sessao.status == 1:
             sessao.status = 2
@@ -63,17 +62,21 @@ def pausar_sessao(request):
             })
 
 
-def retomar_sessao(request):
+def ativar_sessao(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        sessao_id = data.get('sessao_id')
+        sessao_id = request.POST.get('sessao_id')
         sessao = Sessao.objects.filter(id=sessao_id).first()
         if sessao and sessao.status == 2:
-            sessao.status = 1
-            sessao.save()
-            pausa = Pausa.objects.filter(sessao=sessao, fim=None)
+            pausa = Pausa.objects.filter(sessao=sessao, fim=None).first()
             pausa.fim = timezone.now()
             pausa.save()
+
+            #adicionar tempo a sessao
+            diferencaEmSegundos = pausa.fim - pausa.inicio
+            diferencaEmMinutos = diferencaEmSegundos.total_seconds() / 60
+            sessao.status = 1
+            sessao.tempo_minuto = sessao.tempo_minuto + diferencaEmMinutos
+            sessao.save()
             return JsonResponse({
                 'success': True,
                 'message': 'Pausa finalizada com sucesso!',
