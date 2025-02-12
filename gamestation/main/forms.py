@@ -4,4 +4,4 @@ from .models import Sessao
 class SessaoForm(forms.ModelForm):
     class Meta:
         model = Sessao
-        fields = ['tv', 'cliente', 'tempo_minuto']
+        fields = ['tv', 'cliente', 'tempo_segundo']

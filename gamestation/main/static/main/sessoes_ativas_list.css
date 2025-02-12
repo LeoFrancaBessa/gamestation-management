@@ -40,6 +40,14 @@
     background-color: #fafafa;
 }
 
+.sessoes-row-warning {
+    background-color: #faffc5;
+}
+
+.sessoes-row-finished {
+    background-color: #ffcccc;
+}
+
 .sessoes-actions {
     display: flex;
     gap: 8px;
@@ -47,7 +55,7 @@
 
 .sessoes-btn {
     padding: 8px 12px;
-    border: none;
+    border: 1px solid rgb(120, 118, 118);
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;

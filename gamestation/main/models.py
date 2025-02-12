@@ -81,20 +81,12 @@ class Sessao(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True, related_name="sessoes")
     tv = models.ForeignKey(TV, on_delete=models.SET_NULL, blank=True, null=True, related_name="sessoes")
     inicio = models.DateTimeField(auto_now_add=True)
-    tempo_minuto = models.PositiveIntegerField()
+    tempo_segundo = models.PositiveIntegerField()
     status = models.IntegerField(choices=STATUS_CHOICES, default=ATIVO)
+    ultima_pausa = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"Sessão {self.id} - {self.cliente}"
-
-
-class Pausa(models.Model):
-    sessao = models.ForeignKey(Sessao, on_delete=models.CASCADE, related_name="pausas")
-    inicio = models.DateTimeField(auto_now_add=True)
-    fim = models.DateTimeField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Pausa da Sessão {self.sessao.id}"
 
 
 class Venda(models.Model):

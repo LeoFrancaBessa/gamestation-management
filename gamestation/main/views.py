@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.views.generic import ListView
-from .models import Sessao, TV, Cliente, Pausa
+from .models import Sessao, TV, Cliente
 from .forms import SessaoForm
 import json
 
@@ -48,12 +48,11 @@ def pausar_sessao(request):
         sessao = Sessao.objects.filter(id=sessao_id).first()
         if sessao and sessao.status == 1:
             sessao.status = 2
+            sessao.ultima_pausa = timezone.now()
             sessao.save()
-            pausa = Pausa.objects.create(sessao=sessao)
             return JsonResponse({
                 'success': True,
-                'message': 'Pausa criada com sucesso!',
-                'id': pausa.id
+                'message': 'Pausa adicionada com sucesso!',
             })
         else:
             return JsonResponse({
@@ -67,15 +66,10 @@ def ativar_sessao(request):
         sessao_id = request.POST.get('sessao_id')
         sessao = Sessao.objects.filter(id=sessao_id).first()
         if sessao and sessao.status == 2:
-            pausa = Pausa.objects.filter(sessao=sessao, fim=None).first()
-            pausa.fim = timezone.now()
-            pausa.save()
-
             #adicionar tempo a sessao
-            diferencaEmSegundos = pausa.fim - pausa.inicio
-            diferencaEmMinutos = diferencaEmSegundos.total_seconds() / 60
+            diferencaEmSegundos = timezone.now() - sessao.ultima_pausa
             sessao.status = 1
-            sessao.tempo_minuto = sessao.tempo_minuto + diferencaEmMinutos
+            sessao.tempo_segundo = sessao.tempo_segundo + diferencaEmSegundos.total_seconds()
             sessao.save()
             return JsonResponse({
                 'success': True,
@@ -85,4 +79,22 @@ def ativar_sessao(request):
             return JsonResponse({
                 'success': False,
                 'errors': "Sessão não existe ou não esta pausada"
+            })
+        
+
+def finalizar_sessao(request):
+    if request.method == 'POST':
+        sessao_id = request.POST.get('sessao_id')
+        sessao = Sessao.objects.filter(id=sessao_id).first()
+        if sessao and not sessao.status == 0:
+            sessao.status = 0
+            sessao.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Sessão finalizada com sucesso!',
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': "Sessão não existe ou já está finalizada"
             })

@@ -24,11 +24,11 @@
         <tbody>
             <!-- Exemplo de sessão ativa -->
              {% for s in sessoes %}
-                <tr class="sessoes-row">
+                <tr id="sessao_row_id_{{s.id}}" class="sessoes-row">
                     <td>{{s.tv.nome}}</td>
                     <td>{{s.tv.console.nome}}</td>
                     <td>{{s.inicio|date:"H:i"}}</td>
-                    <td id="id_timeleft_row_{{s.id}}">{{s.tempo_minuto}}</td>
+                    <td id="id_timeleft_row_{{s.id}}">{{s.tempo_segundo}}</td>
                     <td class="sessoes-actions">
                         {% if s.status == 1 %}
                             <button id="btn_pausa_{{s.id}}" class="sessoes-btn sessoes-btn-pausar">Pausar</button>
@@ -69,10 +69,10 @@
                     </select>
                 </div>
                 <div class="sessoes-form-group">
-                    <label for="tempo_minuto">Tempo (minutos)</label>
-                    <select id="tempo_minuto" name="tempo_minuto">
-                            <option value=30>30</option>
-                            <option value=60>60</option>
+                    <label for="tempo_segundo">Tempo</label>
+                    <select id="tempo_segundo" name="tempo_segundo">
+                            <option value=3600>1 Hora</option>
+                            <option value=1800>30 Minutos</option>
                     </select>
                 </div>
                 <div class="sessoes-form-actions">
@@ -103,17 +103,25 @@
             return formato;
         }
 
-        function iniciarCronometro(duracaoMinutos, elemento) {
-            let tempoRestante = duracaoMinutos * 60; // Convertendo minutos para segundos
-
+        function iniciarCronometro(tempoRestante, elemento, sessao_id) {
             function atualizarCronometro() {
-                elemento.textContent = formatarHora(tempoRestante);; // Atualizando o elemento na página
+                elemento.textContent = formatarHora(tempoRestante); // Atualizando o elemento na página
+
+                //Trocar cor quando faltar menos de 10 minutos
+                if (tempoRestante < 600){
+                    $("#sessao_row_id_" + sessao_id).removeClass("sessoes-row");
+                    $("#sessao_row_id_" + sessao_id).addClass("sessoes-row-warning");
+                }
 
                 if (tempoRestante > 0) {
                     tempoRestante--; // Reduzindo o tempo restante
                     setTimeout(atualizarCronometro, 1000); // Atualiza a cada segundo
                 } else {
                     elemento.textContent = "Finalizado"; // Quando chega a zero
+                    $("#sessao_row_id_" + sessao_id).removeClass("sessoes-row");
+                    $("#sessao_row_id_" + sessao_id).removeClass("sessoes-row-warning");
+                    $("#sessao_row_id_" + sessao_id).addClass("sessoes-row-finished");
+                    $("#btn_pausa_" + sessao_id).hide()
                 }
             }
 
@@ -123,16 +131,27 @@
         // loop principal
         {% for s in sessoes %}
             // Atualizar cronometro
-            var hora_atual = new Date();
             var hora_inicio = new Date("{{ s.inicio|date:'c' }}");
-            hora_inicio.setMinutes(hora_inicio.getMinutes() + parseInt("{{s.tempo_minuto}}"));
-            var diferençaEmMinutos = (hora_inicio.getTime() - hora_atual.getTime()) / (1000 * 60);
             // Se a sessão estiver ativa, continua o cronometro
-            if ("{{s.status}}" == "1")
-                iniciarCronometro(diferençaEmMinutos, document.getElementById("id_timeleft_row_{{s.id}}"));
+            if ("{{s.status}}" == "1"){
+                var hora_atual = new Date();
+                hora_inicio.setSeconds(hora_inicio.getSeconds() + parseInt("{{s.tempo_segundo}}"));
+                var diferençaEmMinutos = (hora_inicio.getTime() - hora_atual.getTime()) / (1000);
+                iniciarCronometro(diferençaEmMinutos, document.getElementById("id_timeleft_row_{{s.id}}"), "{{s.id}}");
+            }
             // Se não, pausa o cronometro
-            else
-                $("#id_timeleft_row_{{s.id}}").html(formatarHora(diferençaEmMinutos * 60))
+            else{
+                var hora_atual = new Date("{{ s.ultima_pausa|date:'c' }}");
+                hora_inicio.setSeconds(hora_inicio.getSeconds() + parseInt("{{s.tempo_segundo}}"));
+                var diferençaEmMinutos = (hora_inicio.getTime() - hora_atual.getTime()) / (1000);
+                $("#id_timeleft_row_{{s.id}}").html(formatarHora(diferençaEmMinutos))
+                
+                //Trocar cor quando faltar menos de 10 minutos
+                if (diferençaEmMinutos < 600){
+                    $("#sessao_row_id_" + "{{s.id}}").removeClass("sessoes-row");
+                    $("#sessao_row_id_" + "{{s.id}}").addClass("sessoes-row-warning");
+                }
+            }
 
             // função de pausa
             $("#btn_pausa_{{s.id}}").click(function() {
@@ -159,6 +178,27 @@
             $("#btn_ativar_{{s.id}}").click(function() {
                 $.ajax({
                     url: "{% url 'ativar-sessão' %}",
+                    type: "POST",
+                    data: {"sessao_id" : "{{s.id}}"},
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            $('#message').html("");
+                        }
+                    },
+                    error: function(xhr, errmsg, err) {
+                        $('#message').html("");
+                    }
+                });
+            })
+
+             //Função de finalizar
+             $("#btn_finalizar_{{s.id}}").click(function() {
+                $.ajax({
+                    url: "{% url 'finalizar-sessão' %}",
                     type: "POST",
                     data: {"sessao_id" : "{{s.id}}"},
                     headers: {'X-CSRFToken': '{{ csrf_token }}'},
