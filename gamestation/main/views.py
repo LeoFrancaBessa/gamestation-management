@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from .models import Sessao, TV, Cliente
 from .forms import SessaoForm
-import json
+from .utils import sessao_acabada
 
 class GerenciamentoSessoes(ListView):
     model = Sessao
@@ -97,4 +97,32 @@ def finalizar_sessao(request):
             return JsonResponse({
                 'success': False,
                 'errors': "Sessão não existe ou já está finalizada"
+            })
+        
+
+def adicionar_tempo_sessao(request):
+    if request.method == 'POST':
+        sessao_id = request.POST.get('sessao_id')
+        tempo = request.POST.get('tempo')
+        tipo = request.POST.get('tipo')
+        tempo_segundo = int(tempo) * 60 if tipo == 'minuto' else int(tempo) * 3600
+        sessao = Sessao.objects.filter(id=sessao_id).first()
+        if sessao_acabada(sessao.inicio, sessao.tempo_segundo):
+            #Sessao finalizada, atualiza o tempo, atualiza o status e atualiza o tempo de inicio
+            if sessao.status == 0:
+                sessao.tempo_segundo = tempo_segundo
+                sessao.status = 1
+                sessao.inicio = timezone.now()
+            #Sessao em andamento, somente adiciona o tempo
+            else:
+                sessao.tempo_segundo = sessao.tempo_segundo + tempo_segundo
+            sessao.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Tempo adicionado com sucesso!',
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': "Sessão não existe"
             })

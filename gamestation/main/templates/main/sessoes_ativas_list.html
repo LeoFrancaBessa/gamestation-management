@@ -36,6 +36,7 @@
                             <button id="btn_ativar_{{s.id}}" class="sessoes-btn sessoes-btn-ativar">Ativar</button>
                         {% endif %}
                         <button id="btn_finalizar_{{s.id}}" class="sessoes-btn sessoes-btn-finalizar">Finalizar</button>
+                        <button id="btn_adicionar_tempo_{{s.id}}" class="sessoes-btn sessoes-btn-adicionar-tempo">+ Tempo</button>
                     </td>
                 </tr>
              {% endfor %}
@@ -82,9 +83,33 @@
             </form>
         </div>
     </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Modal para adicionar tempo -->
+    <div class="sessoes-modal" id="modal-add-tempo">
+        <div class="sessoes-modal-content">
+            <span id="btn-tempo-close" class="sessoes-modal-close">&times;</span>
+            <h3>Adicionar Tempo</h3>
+            <form class="sessoes-form", id="form-add-tempo", method="post">
+                {% csrf_token %}
+                <div class="sessoes-form-group" id="form-add-tempo">
+                    <label for="tipo">Tipo</label>
+                    <select name="tipo" id="tipo">
+                        <option value=minuto>Minuto(s)</option>
+                        <option value=hora>Hora(s)</option>
+                    </select>
+                </div>
+                <div class="sessoes-form-group">
+                    <label for="tempo">Tempo</label>
+                    <input type="number" min="1" name="tempo" id="tempo">
+                </div>
+                <div class="sessoes-form-actions">
+                    <button type="button" id="btn-tempo-cancelar" class="sessoes-btn sessoes-btn-cancelar">Cancelar</button>
+                    <button type="submit" class="sessoes-btn sessoes-btn-salvar">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
     $(document).ready(function() {
@@ -197,32 +222,89 @@
 
              //Função de finalizar
              $("#btn_finalizar_{{s.id}}").click(function() {
-                $.ajax({
-                    url: "{% url 'finalizar-sessão' %}",
-                    type: "POST",
-                    data: {"sessao_id" : "{{s.id}}"},
-                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            location.reload();
-                        } else {
-                            $('#message').html("");
+
+                Swal.fire({
+                        title: "Tem certeza que deseja finalizar a sessão?",
+                        showDenyButton: true,
+                        confirmButtonText: "Sim",
+                        denyButtonText: `Não`
+                }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "{% url 'finalizar-sessão' %}",
+                                type: "POST",
+                                data: {"sessao_id" : "{{s.id}}"},
+                                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                                dataType: 'json',
+                                success: function(response) {
+                                    if (response.success) {
+                                        location.reload();
+                                    } else {
+                                        $('#message').html("");
+                                    }
+                                },
+                                error: function(xhr, errmsg, err) {
+                                    $('#message').html("");
+                                }
+                            });
                         }
-                    },
-                    error: function(xhr, errmsg, err) {
-                        $('#message').html("");
+                    });
+            })
+
+            $("#btn_adicionar_tempo_{{s.id}}").click(function() {
+                var modalAddTempo = document.getElementById('modal-add-tempo');
+                modalAddTempo.style.display = 'flex';
+
+                var btnCloseModal = document.getElementById('btn-tempo-close');
+                var btnCancelar = document.getElementById('btn-tempo-cancelar');
+
+                // Fechar modal
+                btnCloseModal.addEventListener('click', function () {
+                    modalAddTempo.style.display = 'none';
+                });
+
+                btnCancelar.addEventListener('click', function () {
+                    modalAddTempo.style.display = 'none';
+                });
+
+                // Fechar modal ao clicar fora
+                window.addEventListener('click', function (event) {
+                    if (event.target === modalAddTempo) {
+                        modalAddTempo.style.display = 'none';
                     }
                 });
-            })
+
+                $('#form-add-tempo').on('submit', function(e) {
+                    e.preventDefault();
+
+                    $.ajax({
+                        url: "{% url 'adicionar-tempo-sessão' %}",
+                        type: "POST",
+                        data: $(this).serialize() + "&sessao_id=" + "{{s.id}}",
+                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                $('#message').html("");
+                            }
+                        },
+                        error: function(xhr, errmsg, err) {
+                            $('#message').html("");
+                        }
+                    });
+                });
+            });
 
         {% endfor %}
 
         // Abrir modal
-        const btnAddSessao = document.getElementById('btn-add-sessao');
-        const modalAddSessao = document.getElementById('modal-add-sessao');
-        const btnCloseModal = document.querySelector('.sessoes-modal-close');
-        const btnCancelar = document.querySelector('.sessoes-btn-cancelar');
+        var btnAddSessao = document.getElementById('btn-add-sessao');
+        var modalAddSessao = document.getElementById('modal-add-sessao');
+        var btnCloseModal = document.querySelector('.sessoes-modal-close');
+        var btnCancelar = document.querySelector('.sessoes-btn-cancelar');
 
         btnAddSessao.addEventListener('click', function () {
             modalAddSessao.style.display = 'flex';
