@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.views.generic import ListView
-from .models import Sessao, TV, Cliente
+from .models import Sessao, TV, Cliente, Venda, Produto
 from .forms import SessaoForm
 from .utils import sessao_acabada
 
@@ -19,6 +19,15 @@ class GerenciamentoSessoes(ListView):
         context['tvs'] = TV.objects.filter(status=1)
         context['clientes'] = Cliente.objects.all()
         return context
+    
+
+class GerenciamentoVendas(ListView):
+    model = Sessao
+    template_name = "main/vendas_list.html"
+    context_object_name = "vendas"
+
+    def get_queryset(self):
+        return Venda.objects.all()
 
 
 def criar_sessao(request):

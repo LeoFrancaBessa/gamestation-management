@@ -136,3 +136,6 @@ class VendaItens(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.SET_NULL, blank=True, null=True)
     quantidade = models.IntegerField(default=1)
     preco_unitario = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f"Venda ID: {self.venda.id} - Produto ID: {self.produto.nome}"

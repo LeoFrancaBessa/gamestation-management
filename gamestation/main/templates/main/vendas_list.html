@@ -1,0 +1,108 @@
+{% extends 'main/base.html' %}
+
+{% load static %}
+
+{% block title %}Sessões - Painel da Lan House{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'main/sessoes_ativas_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sessoes-container">
+    <h2 class="sessoes-title">Vendas</h2>
+    <table class="sessoes-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Valor Total</th>
+                <th>Forma de Pagamento</th>
+                <th>Status</th>
+                <th>Produtos</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Exemplo de sessão ativa -->
+             {% for v in vendas %}
+                <tr id="venda_row_id_{{v.id}}" class="sessoes-row">
+                    <td>{{v.id}}</td>
+                    <td>{{v.cliente.nome}}</td>
+                    <td>{{v.data|date:"d/m/Y H:i"}}</td>
+                    <td>R$ {{v.valor_total}}</td>
+                    <td>{{v.forma_pagamento.nome}}</td>
+                    <td>{% if v.status == 1 %} Aprovada {% else %} Cancelada {% endif %}</td>
+                    <td><i style="cursor: pointer;" class="fa-solid fa-arrow-up-right-from-square"></i></td>
+                </tr>
+             {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Botão para adicionar sessão -->
+    <button class="sessoes-btn-add" id="btn-add-sessao">+</button>
+
+    <!-- Modal para adicionar sessão -->
+    <div class="sessoes-modal" id="modal-add-sessao">
+        <div class="sessoes-modal-content">
+            <span class="sessoes-modal-close">&times;</span>
+            <h3>Criar Nova Sessão</h3>
+            <form class="sessoes-form", id="form-add-sessao", method="post">
+                {% csrf_token %}
+                <div class="sessoes-form-group" id="form-add-sessao">
+                    <label for="tv">TV</label>
+                    <select name="tv" id="tv">
+                    </select>
+                </div>
+                <div class="sessoes-form-group">
+                    <label for="cliente">Cliente</label>
+                    <select name="cliente" id="cliente">
+                    </select>
+                </div>
+                <div class="sessoes-form-group">
+                    <label for="tempo_segundo">Tempo</label>
+                    <select id="tempo_segundo" name="tempo_segundo">
+                            <option value=3600>1 Hora</option>
+                            <option value=1800>30 Minutos</option>
+                    </select>
+                </div>
+                <div class="sessoes-form-actions">
+                    <button type="button" class="sessoes-btn sessoes-btn-cancelar">Cancelar</button>
+                    <button type="submit" class="sessoes-btn sessoes-btn-salvar">Criar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+
+        // Abrir modal
+        var btnAddSessao = document.getElementById('btn-add-sessao');
+        var modalAddSessao = document.getElementById('modal-add-sessao');
+        var btnCloseModal = document.querySelector('.sessoes-modal-close');
+        var btnCancelar = document.querySelector('.sessoes-btn-cancelar');
+
+        btnAddSessao.addEventListener('click', function () {
+            modalAddSessao.style.display = 'flex';
+        });
+
+        // Fechar modal
+        btnCloseModal.addEventListener('click', function () {
+            modalAddSessao.style.display = 'none';
+        });
+
+        btnCancelar.addEventListener('click', function () {
+            modalAddSessao.style.display = 'none';
+        });
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function (event) {
+            if (event.target === modalAddSessao) {
+                modalAddSessao.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}
