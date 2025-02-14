@@ -1,12 +1,5 @@
 from django.db import models
 
-class CategoriaProduto(models.Model):
-    nome = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nome
-
-
 class Cliente(models.Model):
     nome = models.CharField(max_length=100, blank=True, null=True)
     nick = models.CharField(max_length=100, blank=True, null=True)
@@ -58,16 +51,6 @@ class TV(models.Model):
         return f"{self.nome} - {self.marca}"
 
 
-class Produto(models.Model):
-    nome = models.CharField(max_length=100)
-    preco = models.DecimalField(max_digits=6, decimal_places=2)
-    quantidade_estoque = models.PositiveIntegerField()
-    categoria = models.ForeignKey(CategoriaProduto, on_delete=models.SET_NULL, blank=True, null=True, related_name="produtos")
-
-    def __str__(self):
-        return self.nome
-
-
 class Sessao(models.Model):
     FINALIZADO = 0
     ATIVO = 1
@@ -89,13 +72,67 @@ class Sessao(models.Model):
         return f"Sessão {self.id} - {self.cliente}"
 
 
+class CategoriaProduto(models.Model):
+    nome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nome
+
+
+class Produto(models.Model):
+    ATIVO = 1
+    DESABILITADO = 0
+    STATUS_CHOICES = [
+        (ATIVO, 'Ativo'),
+        (DESABILITADO, 'Desabilitado'),
+    ]
+
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    preco = models.DecimalField(max_digits=6, decimal_places=2)
+    quantidade_estoque = models.PositiveIntegerField()
+    categoria = models.ForeignKey(CategoriaProduto, on_delete=models.SET_NULL, blank=True, null=True, related_name="produtos")
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ATIVO)
+
+    def __str__(self):
+        return self.nome
+
+
+class FormaPagamento(models.Model):
+    ATIVO = 1
+    DESABILITADO = 0
+    STATUS_CHOICES = [
+        (ATIVO, 'Ativo'),
+        (DESABILITADO, 'Desabilitado'),
+    ]
+
+    nome = models.CharField(max_length=50)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=ATIVO)
+
+    def __str__(self):
+        return self.nome
+
+
 class Venda(models.Model):
+    CANCELADA = 0
+    APROVADA = 1
+    STATUS_CHOICES = [
+        (CANCELADA, 'Cancelada'),
+        (APROVADA, 'Aprovada'),
+    ]
+
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
-    sessao = models.ForeignKey(Sessao, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
-    produto = models.ForeignKey(Produto, on_delete=models.SET_NULL, blank=True, null=True, related_name="vendas")
-    quantidade = models.PositiveIntegerField()
     valor_total = models.DecimalField(max_digits=8, decimal_places=2)
     data = models.DateTimeField(auto_now_add=True)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=APROVADA)
+    forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f"Venda {self.id} - {self.valor_total}"
+    
+
+class VendaItens(models.Model):
+    venda = models.ForeignKey(Venda, on_delete=models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete=models.SET_NULL, blank=True, null=True)
+    quantidade = models.IntegerField(default=1)
+    preco_unitario = models.DecimalField(max_digits=6, decimal_places=2)

@@ -40,12 +40,16 @@
     background-color: #fafafa;
 }
 
+.sessoes-row-paused {
+    background-color: #fff3cd;
+}
+
 .sessoes-row-warning {
-    background-color: #faffc5;
+    background-color: #ffcccc;
 }
 
 .sessoes-row-finished {
-    background-color: #ffcccc;
+    background-color: #ff8484;
 }
 
 .sessoes-actions {

@@ -171,11 +171,10 @@
                 var diferençaEmMinutos = (hora_inicio.getTime() - hora_atual.getTime()) / (1000);
                 $("#id_timeleft_row_{{s.id}}").html(formatarHora(diferençaEmMinutos))
                 
-                //Trocar cor quando faltar menos de 10 minutos
-                if (diferençaEmMinutos < 600){
-                    $("#sessao_row_id_" + "{{s.id}}").removeClass("sessoes-row");
-                    $("#sessao_row_id_" + "{{s.id}}").addClass("sessoes-row-warning");
-                }
+                //trocar cor para indicar a pausa
+                $("#sessao_row_id_" + "{{s.id}}").removeClass("sessoes-row");
+                $("#sessao_row_id_" + "{{s.id}}").addClass("sessoes-row-paused");
+                
             }
 
             // função de pausa
